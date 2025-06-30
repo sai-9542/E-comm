@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductsController;
+use App\Http\Controllers\CartController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,4 +20,7 @@ Route::get('/', function () {
 });
 
 Route::resource('products', ProductsController::class);
+//Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
+Route::resource('/cart', CartController::class);
+
 

@@ -15,7 +15,8 @@ class CustomField extends Model
         'type',
         'options',
         'parent_id',
-        'dependency_value'
+        'dependency_value',
+        'required',
     ];
     
 

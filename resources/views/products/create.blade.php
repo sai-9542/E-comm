@@ -47,9 +47,15 @@ function addField(parentIndex = null, parentValue = null) {
                     ${fieldTypes.map(t => `<option value="${t}">${t}</option>`).join('')}
                 </select>
             </div>
-            <div class="col-sm-9">
+            <div class="col-sm-7">
                 <input type="text" name="fields[${index}][label]" placeholder="Label" class="form-control mb-2" required onblur="updateFieldRegistry(${index})">
             </div>
+            <div class="col-sm-2">        
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="fields[${index}][required]" id="required-${index}" value="1">
+              <label class="form-check-label" for="required-${index}">Required</label>
+            </div>
+                    </div>
             <div class="col-sm-12">
                 <div id="options-${index}" style="display:none;" class="mb-2">
                     <textarea name="fields[${index}][options]" id="type-${index}" placeholder="Comma-separated options" class="form-control"></textarea>
