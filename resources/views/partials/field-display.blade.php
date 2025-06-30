@@ -14,10 +14,20 @@
     <strong>{{ $field->label }}</strong><br>
 
     @if($field->type === 'text')
-        <input type="text" class="form-control" value="{{ $fieldValue }}" readonly>
+        <input type="text"
+       class="form-control"
+       value="{{ $fieldValue }}"
+        name="custom[{{ $field->id }}]"
+       data-required="{{ $field->required ? 'true' : 'false' }}"
+       {{ $field->parent_id ? '' : ($field->required ? 'required' : '') }}>
+
 
     @elseif($field->type === 'select')
-        <select class="form-select readonly-select" onchange="handleChange(this, '{{ $field->id }}')">
+        <select class="form-select"
+        onchange="handleChange(this, '{{ $field->id }}')"
+        data-required="{{ $field->required ? 'true' : 'false' }}"
+        {{ $field->parent_id ? '' : ($field->required ? 'required' : '') }}>
+            <option value="">select  an option</option>
             @foreach(explode(',', $field->options ?? '') as $option)
                 <option value="{{ trim($option) }}" {{ trim($option) == $fieldValue ? 'selected' : '' }}>
                     {{ trim($option) }}
@@ -33,6 +43,7 @@
                name="radio_{{ $field->id }}"
                value="{{ trim($option) }}"
                {{ trim($option) == $fieldValue ? 'checked' : '' }}
+               {{ $field->required ? 'required' : '' }}
                onclick="handleRadioChange({{ $field->id }}, '{{ trim($option) }}')">
         <label class="form-check-label">{{ trim($option) }}</label>
     </div>
@@ -42,7 +53,7 @@
         @php $selected = explode(',', $fieldValue); @endphp
         @foreach(explode(',', $field->options ?? '') as $option)
             <div class="form-check form-check-inline">
-                <input type="checkbox" class="form-check-input" disabled {{ in_array(trim($option), $selected) ? 'checked' : '' }}>
+                <input type="checkbox" class="form-check-input" disabled1 {{ in_array(trim($option), $selected) ? 'checked' : '' }} {{ $field->required ? 'required' : '' }}>
                 <label class="form-check-label">{{ trim($option) }}</label>
             </div>
         @endforeach
