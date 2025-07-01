@@ -6,6 +6,10 @@ use App\Models\Product;
 use App\Models\CustomField;
 use App\Models\ProductCustomFieldValue;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+//use Intervention\Image\Facades\Image;
+use Intervention\Image\Laravel\Facades\Image;
+
 
 class ProductsController extends Controller
 {
@@ -40,11 +44,46 @@ $product = Product::with(['customFields', 'customFieldValues.customField'])->fin
 
 
 public function store(Request $request)
-{
+{   
+    $data = $request->validate([
+        'name' => 'required|string',
+        'description' => 'nullable|string',
+        'price' => 'nullable|numeric',
+        'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        'post_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+    ]);
+
+    //$thumbnail = $request->hasFile('thumbnail') ?  $request->file('thumbnail')->store('products', 'public') : null;
+
+    //$post_image = $request->hasFile('post_image') ? $request->file('post_image')->store('products', 'public') : null;
+
+    $originalPath = $thumbnailPath = null;
+    if ($request->hasFile('post_image')) {
+        $original = $request->file('post_image');
+        $filename = uniqid() . '.' . $original->getClientOriginalExtension();
+
+        // Save original
+        $originalPath = 'products/' . $filename;
+        Storage::disk('public')->put($originalPath, file_get_contents($original));
+
+        // Create and save thumbnail
+        $thumbnailPath = 'products/thumbnails/' . $filename;
+        $thumbnail = Image::read($original)->resize(150, 150, function ($constraint) {
+            $constraint->aspectRatio();
+            $constraint->upsize();
+        })->encode();
+        //$thumbnail = Image::make($original)->resize(150, 150);
+        Storage::disk('public')->put($thumbnailPath, $thumbnail);
+    }
+//print_r($thumbnailPath);return;
+
     // 1. Create product
     $product = Product::create([
         'name' => $request->name,
         'description' => $request->description,
+        'thumbnail' => $thumbnailPath,
+        'post_image' => $originalPath,
+        'price' => $request->price,
     ]);
 
     // 2. Store custom fields (with dependency resolution)
@@ -107,12 +146,45 @@ public function edit($id)
         'fields.*.type' => 'required|in:text,select,radio,checkbox',
         'fields.*.options' => 'nullable|string',
         'fields.*.required' => 'nullable|boolean',
+        'post_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        'price' => 'nullable|numeric',
     ]);
 
-    $product->update([
+    if ($request->hasFile('post_image')) {
+        // Delete old files if needed
+        if ($product->thumbnail_path) {
+            Storage::delete([$product->thumbnail_path, $product->image_path]);
+        }
+
+        $image = $request->file('post_image');
+        $filename = uniqid() . '.' . $image->getClientOriginalExtension();
+
+        // Store original
+        $originalPath = $image->storeAs('products/original', $filename, 'public');
+
+        // Create thumbnail
+        $thumbPath = 'products/thumbnails/' . $filename;
+        $thumbnail = Image::read($image)->resize(150, 150, function ($constraint) {
+            $constraint->aspectRatio();
+            $constraint->upsize();
+        })->encode();
+        Storage::disk('public')->put($thumbPath, $thumbnail);
+
+        // Save paths
+        $product->post_image = $originalPath;
+        $product->thumbnail = $thumbPath;
+    }
+
+    $product->name = $validated['name'];
+    $product->description = $validated['description'] ?? null;
+    $product->price = $validated['price'];
+     $product->save();
+
+    /*$product->update([
         'name' => $request->name,
         'description' => $request->description,
-    ]);
+        'price' => $request->price,
+    ]);*/
 
     $savedIds = [];
     $tempIndexToRealId = [];

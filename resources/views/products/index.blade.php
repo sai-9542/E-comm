@@ -13,6 +13,7 @@
     <table class="table table-bordered">
         <thead>
             <tr>
+                <th>#</th>
                 <th>Name</th>
                 <th>Description</th>
                 <th>Actions</th>
@@ -21,6 +22,11 @@
         <tbody>
             @forelse($products as $product)
                 <tr>
+                    <td>
+                         @if(!empty($product->thumbnail))
+            <img src="{{ asset('storage/' . $product->thumbnail) }}" height="60" class="mt-2">
+        @endif
+                    </td>
                     <td>{{ $product->name }}</td>
                     <td>{{ Str::limit($product->description, 50) }}</td>
                     <td>

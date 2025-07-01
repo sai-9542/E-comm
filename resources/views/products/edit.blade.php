@@ -1,18 +1,38 @@
 @extends('layouts.app')
 
 @section('content')
+@if($errors->any())
+    {{ implode('', $errors->all('<div>:message</div>')) }}
+@endif
 <div class="container">
     <h2>Edit Product</h2>
 
-    <form action="{{ route('products.update', $product->id) }}" method="POST">
+    <form action="{{ route('products.update', $product->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         <input type="hidden" name="id" value="{{ $product->id }}">
 
-        <div class="mb-3">
+        <div class="row mb-3">
+        <div class="col-sm-4">
             <label>Product Name</label>
-            <input type="text" name="name" class="form-control" value="{{ $product->name }}" required>
+            <input type="text" name="name" class="form-control" value="{{ $product->name }}" required >
         </div>
+
+
+          <div class="col-sm-4">
+            <label>Price</label>
+            <input type="number" step="0.01" name="price" class="form-control" value="{{ old('price', $product->price ?? '') }}">
+        </div>
+        
+
+        <div class="col-sm-4">
+            <label>Post Image</label>
+            <input type="file" name="post_image" class="form-control">
+            @if(!empty($product->post_image))
+            <img src="{{ asset('storage/' . $product->post_image) }}" height="60" class="mt-2">
+            @endif
+        </div>
+    </div>
 
         <div class="mb-3">
             <label>Description</label>
@@ -31,13 +51,12 @@
 const fieldTypes = ['text', 'select', 'radio', 'checkbox'];
 let fieldIndex = 0;
 let fieldRegistry = [];
+const fieldsFromLaravel = @json($product->customFields->load('children'));
 
-const fieldsFromLaravel = @json($product->customFields->whereNull('parent_id')->load('children'));
-console.log(fieldsFromLaravel);
 function addFieldFromData(field, parentIndex = null, parentValue = null) {
-    console.log(fieldsFromLaravel);
-
     const index = fieldIndex++;
+    field._temp_index = index;
+
     const wrapperId = `field-wrapper-${index}`;
 
     const parentHidden = parentIndex !== null ? `
@@ -94,9 +113,7 @@ function addFieldFromData(field, parentIndex = null, parentValue = null) {
     }
 
     if (field.children && field.children.length > 0) {
-        if (field.options && field.dependency_value) {
-            toggleDependency(index, 'yes');
-        }
+        toggleDependency(index, 'yes');
         field.children.forEach(child => {
             addFieldFromData(child, index, child.dependency_value);
         });
