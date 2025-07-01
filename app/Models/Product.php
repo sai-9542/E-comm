@@ -10,6 +10,9 @@ class Product extends Model {
      protected $fillable = [
         'name',
         'description',
+    'price',
+    'thumbnail',
+    'post_image',
     ];
     public function customFieldValues()
 {
