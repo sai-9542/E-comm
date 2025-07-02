@@ -34,7 +34,7 @@ public function create()
 public function show($id)
 {
    // $product = Product::with('customFieldValues.customField')->findOrFail($id);
-$product = Product::with(['customFields', 'customFieldValues.customField'])->findOrFail($id);
+    $product = Product::with(['customFields', 'customFieldValues.customField'])->findOrFail($id);
 
    // print_r($product);
     return view('products.show', compact('product'));
@@ -97,7 +97,7 @@ public function store(Request $request)
                 'label' => $field['label'],
                 'type' => $field['type'],
                 'options' => $field['options'] ?? null,
-                        'required' => isset($field['required']) ? 1 : 0,
+                'required' => isset($field['required']) ? 1 : 0,
                 // leave parent_id NULL for now
             ]);
             $fieldMap[$tempIndex] = $created->id;
@@ -126,15 +126,15 @@ public function store(Request $request)
 }
 
 public function edit($id)
-    {
-        $product = Product::with(['customFields.children'])->findOrFail($id);
-        return view('products.edit', compact('product'));
+{
+    $product = Product::with(['customFields.children'])->findOrFail($id);
+    return view('products.edit', compact('product'));
 
-    }
+}
 
 
 
- public function update(Request $request, $id)
+public function update(Request $request, $id)
 {
     $product = Product::with('customFields')->findOrFail($id);
 
@@ -178,7 +178,7 @@ public function edit($id)
     $product->name = $validated['name'];
     $product->description = $validated['description'] ?? null;
     $product->price = $validated['price'];
-     $product->save();
+    $product->save();
 
     /*$product->update([
         'name' => $request->name,
@@ -187,71 +187,82 @@ public function edit($id)
     ]);*/
 
     $savedIds = [];
-    $tempIndexToRealId = [];
+$tempIndexToRealId = [];
 
-    // First pass: create/update all fields, store _temp_index => real_id
-    foreach ($request->fields as $i => $field) {
-        $data = [
-            'product_id' => $product->id,
-            'label' => $field['label'],
-            'type' => $field['type'],
-            'options' => $field['options'] ?? null,
-            'required' => isset($field['required']) ? 1 : 0,
-            'parent_id' => null, // default to no parent
-            'dependency_value' => $field['dependency_value'] ?? null,
-        ];
-
-        // Parent linking will be updated in second pass
+foreach ($request->fields as $i => $field) {
+    // Skip if marked deleted
+    if (isset($field['deleted']) && $field['deleted'] == 1) {
         if (!empty($field['id'])) {
-            $cf = CustomField::find($field['id']);
-            if ($cf) {
-                $cf->update($data);
-                $savedIds[] = $cf->id;
-                if (isset($field['_temp_index'])) {
-                    $tempIndexToRealId[$field['_temp_index']] = $cf->id;
-                }
-            }
-        } else {
-            $cf = CustomField::create($data);
+            // If field exists in DB, delete it
+            CustomField::where('id', $field['id'])->delete();
+        }
+        continue;
+    }
+
+    // Create or update logic (same as before)
+    $data = [
+        'product_id' => $product->id,
+        'label' => $field['label'],
+        'type' => $field['type'],
+        'options' => $field['options'] ?? null,
+        'required' => isset($field['required']) ? 1 : 0,
+        'parent_id' => null,
+        'dependency_value' => null,
+    ];
+
+    if (!empty($field['id'])) {
+        $cf = CustomField::find($field['id']);
+        if ($cf) {
+            $cf->update($data);
             $savedIds[] = $cf->id;
             if (isset($field['_temp_index'])) {
                 $tempIndexToRealId[$field['_temp_index']] = $cf->id;
             }
         }
-    }
-
-    // Second pass: now assign parent_id using temp index
-    foreach ($request->fields as $field) {
-        if (!empty($field['parent_temp'])) {
-            $realFieldId = !empty($field['id']) ? $field['id'] : null;
-            $parentId = $tempIndexToRealId[$field['parent_temp']] ?? null;
-
-            if ($parentId && $realFieldId) {
-                CustomField::where('id', $realFieldId)->update([
-                    'parent_id' => $parentId,
-                    'dependency_value' => $field['dependency_value'] ?? null,
-                ]);
-            } elseif ($parentId && empty($realFieldId)) {
-                // Create child now with parent_id
-                $cf = CustomField::create([
-                    'product_id' => $product->id,
-                    'label' => $field['label'],
-                    'type' => $field['type'],
-                    'options' => $field['options'] ?? null,
-                    'required' => isset($field['required']) ? 1 : 0,
-                    'parent_id' => $parentId,
-                    'dependency_value' => $field['dependency_value'] ?? null,
-                ]);
-                $savedIds[] = $cf->id;
-            }
+    } else {
+        $cf = CustomField::create($data);
+        $savedIds[] = $cf->id;
+        if (isset($field['_temp_index'])) {
+            $tempIndexToRealId[$field['_temp_index']] = $cf->id;
         }
     }
-
-    // Remove deleted fields
-    $product->customFields()->whereNotIn('id', $savedIds)->delete();
-
-    return redirect()->route('products.edit', $product->id)->with('success', 'Product updated successfully.');
 }
+
+// Second pass: assign parent_id and dependency_value
+foreach ($request->fields as $field) {
+    if ((isset($field['deleted']) && $field['deleted'] == 1)) {
+        continue;
+    }
+
+    if (array_key_exists('parent_temp', $field) && $field['parent_temp'] !== '') {
+        $realFieldId = !empty($field['id'])
+            ? $field['id']
+            : ($tempIndexToRealId[$field['_temp_index']] ?? null);
+
+        $parentId = $tempIndexToRealId[$field['parent_temp']] ?? null;
+
+        $dependencyValue = isset($field['dependency_value']) && $field['dependency_value'] !== ''
+            ? $field['dependency_value']
+            : null;
+
+        if ($parentId && $realFieldId) {
+            CustomField::where('id', $realFieldId)->update([
+                'parent_id' => $parentId,
+                'dependency_value' => $dependencyValue,
+            ]);
+        }
+    }
+}
+
+
+// Third pass: delete removed fields (optional)
+$product->customFields()->whereNotIn('id', $savedIds)->delete();
+
+
+
+return redirect()->route('products.edit', $product->id)->with('success', 'Product updated successfully.');
+}
+
 
 
     // Delete a product

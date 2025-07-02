@@ -52,7 +52,7 @@ const fieldTypes = ['text', 'select', 'radio', 'checkbox'];
 let fieldIndex = 0;
 let fieldRegistry = [];
 const fieldsFromLaravel = @json($product->customFields->load('children'));
-
+console.log(fieldsFromLaravel);
 function addFieldFromData(field, parentIndex = null, parentValue = null) {
     const index = fieldIndex++;
     field._temp_index = index;
@@ -112,13 +112,21 @@ function addFieldFromData(field, parentIndex = null, parentValue = null) {
         targetContainer.appendChild(wrapper);
     }
 
-    if (field.children && field.children.length > 0) {
+    // Correctly handle children based on dependency_value
+    if (field.children && field.children.length > 0 && field.options) {
         toggleDependency(index, 'yes');
-        field.children.forEach(child => {
-            addFieldFromData(child, index, child.dependency_value);
+
+        const values = field.options.split(',').map(v => v.trim()).filter(Boolean);
+
+        values.forEach(value => {
+            const childrenForValue = field.children.filter(child => child.dependency_value === value);
+            childrenForValue.forEach(child => {
+                addFieldFromData(child, index, value); // correct: use value as dependency_value
+            });
         });
     }
 }
+
 
 function addField(parentIndex = null, parentValue = null) {
     addFieldFromData({ label: '', type: 'text', options: '', required: false, children: [] }, parentIndex, parentValue);
@@ -175,10 +183,15 @@ function markFieldDeleted(index, btn) {
     }
 }
 
+
 // Render initial fields from Laravel
 
 document.addEventListener('DOMContentLoaded', function () {
-    fieldsFromLaravel.forEach(field => addFieldFromData(field));
+   // fieldsFromLaravel.forEach(field => addFieldFromData(field));
+    fieldsFromLaravel
+    .filter(field => field.parent_id === null)
+    .forEach(field => addFieldFromData(field));
+
 });
 </script>
 @endsection

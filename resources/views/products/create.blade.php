@@ -56,7 +56,7 @@
         ` : '';
 
         const html = `
-        <div class="border p-3 mb-3 row" id="${wrapperId}">
+        <div class="border p-3 mb-3 row field-wrapper" id="${wrapperId}">
             ${parentHidden}
             <div class="col-sm-3">
                 <select name="fields[${index}][type]" onchange="toggleOptions(this, ${index})" class="form-select mb-2">
@@ -71,6 +71,7 @@
               <input class="form-check-input" type="checkbox" name="fields[${index}][required]" id="required-${index}" value="1">
               <label class="form-check-label" for="required-${index}">Required</label>
             </div>
+            <button type="button" class="btn btn-sm btn-danger mt-2" onclick="markFieldDeleted(${index}, this)">Delete</button>
                     </div>
             <div class="col-sm-12">
                 <div id="options-${index}" style="display:none;" class="mb-2">
@@ -142,5 +143,12 @@
             exists.label = label;
         }
     }
+
+    function markFieldDeleted(index, btn) {
+    const wrapper = btn.closest(`#field-wrapper-${index}`);
+    if (wrapper) {
+        wrapper.innerHTML = '';
+    }
+}
 </script>
 @endsection
