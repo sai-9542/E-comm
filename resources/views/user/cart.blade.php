@@ -35,10 +35,37 @@
                         </td>
                     </tr>
                 @endforeach
+
+
+
             </tbody>
         </table>
     @else
         <p>Your cart is empty.</p>
     @endif
+
+    @foreach(session('cart', []) as $item)
+                <div class="mb-3 border p-2">
+                    <strong>{{ $item['name'] }}</strong><br>
+                    Base Price: ₹{{ $item['price'] }}<br>
+
+                    @if(!empty($item['custom_fields']))
+                        <ul>
+                            @foreach($item['custom_fields'] as $label => $data)
+                                @if(is_array($data) && isset($data[0]['value']))
+                                    @foreach($data as $opt)
+                                        <li>{{ $label }}: {{ $opt['value'] }} (₹{{ $opt['price'] }})</li>
+                                    @endforeach
+                                @else
+                                    <li>{{ $label }}: {{ $data['value'] }} (₹{{ $data['price'] }})</li>
+                                @endif
+                            @endforeach
+                        </ul>
+                    @endif
+
+                    <strong>Total: ₹{{ $item['total_price'] }}</strong>
+                </div>
+            @endforeach
+
 </div>
 @endsection
