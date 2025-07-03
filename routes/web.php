@@ -22,5 +22,6 @@ Route::get('/', function () {
 Route::resource('products', ProductsController::class);
 //Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
 Route::resource('/cart', CartController::class);
+Route::get('/cart/{id}/edit', [CartController::class, 'edit']);
 
 

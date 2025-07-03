@@ -92,11 +92,21 @@ public function store(Request $request)
     if ($request->has('fields')) {
         // First pass: create all fields without parent_id
         foreach ($request->fields as $tempIndex => $field) {
+
+            $priceArray = [];
+            if (!empty($field['option_prices'])) {
+                $priceParts = array_map('trim', explode(',', $field['option_prices']));
+                foreach ($priceParts as $part) {
+                    $priceArray[] = is_numeric($part) ? floatval($part) : 0;
+                }
+            }
+
             $created = CustomField::create([
                 'product_id' => $product->id,
                 'label' => $field['label'],
                 'type' => $field['type'],
                 'options' => $field['options'] ?? null,
+                'option_prices' => !empty($priceArray) ? json_encode($priceArray) : null,
                 'required' => isset($field['required']) ? 1 : 0,
                 // leave parent_id NULL for now
             ]);
@@ -119,6 +129,8 @@ public function store(Request $request)
             }
         }
     }
+
+
 
     // 3. Save user values if needed (not shown here)
 
@@ -199,12 +211,21 @@ foreach ($request->fields as $i => $field) {
         continue;
     }
 
+    $priceArray = [];
+            if (!empty($field['option_prices'])) {
+                $priceParts = array_map('trim', explode(',', $field['option_prices']));
+                foreach ($priceParts as $part) {
+                    $priceArray[] = is_numeric($part) ? floatval($part) : 0;
+                }
+            }
+
     // Create or update logic (same as before)
     $data = [
         'product_id' => $product->id,
         'label' => $field['label'],
         'type' => $field['type'],
         'options' => $field['options'] ?? null,
+        'option_prices' => !empty($priceArray) ? json_encode($priceArray) : null,
         'required' => isset($field['required']) ? 1 : 0,
         'parent_id' => null,
         'dependency_value' => null,

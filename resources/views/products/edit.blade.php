@@ -63,7 +63,11 @@ function addFieldFromData(field, parentIndex = null, parentValue = null) {
         <input type="hidden" name="fields[${index}][parent_temp]" value="${parentIndex}" />
         <input type="hidden" name="fields[${index}][dependency_value]" value="${parentValue}" />
     ` : '';
+console.log(Array.isArray(field.option_prices) ? field.option_prices.join(',') : 'not working');
+console.log(typeof field.option_prices, field.option_prices);
 
+const prices = JSON.parse(field.option_prices || '[]');
+//console.log(prices.join(', ')); // "10, 20"
     const html = `
         <div class="border p-3 mb-3 row" id="${wrapperId}">
             ${parentHidden}
@@ -87,7 +91,14 @@ function addFieldFromData(field, parentIndex = null, parentValue = null) {
             </div>
             <div class="col-sm-12">
                 <div id="options-${index}" style="display:${['select','radio','checkbox'].includes(field.type) ? 'block' : 'none'};" class="mb-2">
+                     <div class="col-md-12">
                     <textarea name="fields[${index}][options]" id="type-${index}" class="form-control">${field.options ?? ''}</textarea>
+                    </div>
+                        <div class="col-md-12">
+                            <label>Prices (comma-separated)</label>
+                            <textarea name="fields[${index}][option_prices]" placeholder="e.g., 10,20,30" class="form-control mb-2">${prices ? prices.join(',') : ''}
+</textarea>
+                        </div>
                 </div>
                 <div class="col-sm-3" id="dependency-${index}" style="display:${['select','radio','checkbox'].includes(field.type) ? 'block' : 'none'};">
                     <label>Has Dependency?</label>

@@ -50,44 +50,54 @@
         const index = fieldIndex++;
         const wrapperId = `field-wrapper-${index}`;
 
-        const parentHidden = parentIndex !== null ? `
-        <input type="hidden" name="fields[${index}][parent_temp]" value="${parentIndex}" />
-        <input type="hidden" name="fields[${index}][dependency_value]" value="${parentValue}" />
+       const parentHidden = parentIndex !== null ? `
+            <input type="hidden" name="fields[${index}][parent_temp]" value="${parentIndex}" />
+            <input type="hidden" name="fields[${index}][dependency_value]" value="${parentValue}" />
         ` : '';
 
         const html = `
-        <div class="border p-3 mb-3 row field-wrapper" id="${wrapperId}">
-            ${parentHidden}
-            <div class="col-sm-3">
-                <select name="fields[${index}][type]" onchange="toggleOptions(this, ${index})" class="form-select mb-2">
-            ${fieldTypes.map(t => `<option value="${t}">${t}</option>`).join('')}
-                </select>
-            </div>
-            <div class="col-sm-7">
-                <input type="text" name="fields[${index}][label]" placeholder="Label" class="form-control mb-2" required onblur="updateFieldRegistry(${index})">
-            </div>
-            <div class="col-sm-2">        
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="fields[${index}][required]" id="required-${index}" value="1">
-              <label class="form-check-label" for="required-${index}">Required</label>
-            </div>
-            <button type="button" class="btn btn-sm btn-danger mt-2" onclick="markFieldDeleted(${index}, this)">Delete</button>
-                    </div>
-            <div class="col-sm-12">
-                <div id="options-${index}" style="display:none;" class="mb-2">
-                    <textarea name="fields[${index}][options]" id="type-${index}" placeholder="Comma-separated options" class="form-control"></textarea>
-                </div>
-                <div class="col-sm-3" id="dependency-${index}" style="display:none;">
-                    <label>Has Dependency?</label>
-                    <select onchange="toggleDependency(${index}, this.value)" class="form-select mb-2" id="dependency-toggle-${index}">
-                        <option value="">No</option>
-                        <option value="yes">Yes</option>
+            <div class="border p-3 mb-3 row field-wrapper" id="${wrapperId}">
+                ${parentHidden}
+                <div class="col-sm-3">
+                    <select name="fields[${index}][type]" onchange="toggleOptions(this, ${index})" class="form-select mb-2">
+                        ${fieldTypes.map(t => `<option value="${t}">${t}</option>`).join('')}
                     </select>
                 </div>
-                <div class="col-sm-12" id="nested-${index}" style="display:none;"></div>
+                <div class="col-sm-7">
+                    <input type="text" name="fields[${index}][label]" placeholder="Label" class="form-control mb-2" required onblur="updateFieldRegistry(${index})">
+                </div>
+                <div class="col-sm-2">        
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="fields[${index}][required]" id="required-${index}" value="1">
+                        <label class="form-check-label" for="required-${index}">Required</label>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-danger mt-2" onclick="markFieldDeleted(${index}, this)">Delete</button>
+                </div>
+
+                <div class="col-sm-12">
+                    <div id="options-${index}" style="display:none;" class="mb-2 row">
+                        <div class="col-md-12">
+                            <label>Options (comma-separated)</label>
+                            <textarea name="fields[${index}][options]" id="type-${index}" placeholder="e.g., S,M,L" class="form-control mb-2"></textarea>
+                        </div>
+                        <div class="col-md-12">
+                            <label>Prices (comma-separated)</label>
+                            <textarea name="fields[${index}][option_prices]" placeholder="e.g., 10,20,30" class="form-control mb-2"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3" id="dependency-${index}" style="display:none;">
+                        <label>Has Dependency?</label>
+                        <select onchange="toggleDependency(${index}, this.value)" class="form-select mb-2" id="dependency-toggle-${index}">
+                            <option value="">No</option>
+                            <option value="yes">Yes</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12" id="nested-${index}" style="display:none;"></div>
+                </div>
             </div>
-        </div>
         `;
+
 
         const targetContainer = parentIndex === null
         ? document.getElementById('customFieldsContainer')
