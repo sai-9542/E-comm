@@ -54,6 +54,7 @@
         </select>
         <input type="hidden" name="custom[{{ $field->id }}]" class="custom-hidden" />
 
+
     {{-- Radio Field --}}
     @elseif($field->type === 'radio')
         @foreach($options as $i => $opt)
@@ -76,6 +77,7 @@
                 <label class="form-check-label">{{ $opt }} {{ $price > 0 ? '+₹' . $price : '' }}</label>
             </div>
         @endforeach
+        <input type="hidden" name="custom[{{ $field->id }}]" class="custom-hidden" />
 
     {{-- Checkbox Field --}}
     @elseif($field->type === 'checkbox')

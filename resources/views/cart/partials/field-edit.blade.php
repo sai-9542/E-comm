@@ -2,6 +2,7 @@
     $value = $fieldValues[$field->id] ?? null;
     $options = explode(',', $field->options ?? '');
     $prices = explode(',', str_replace(['[', ']'], '', $field->option_prices ?? ''));
+    $option_images = !empty($field->option_images) ? json_decode($field->option_images, true) : [];
 @endphp
 
 <div class="mb-3 border-start ps-3 dependent-field"
@@ -42,8 +43,12 @@
 
     @elseif($field->type === 'radio')
         @foreach($options as $i => $opt)
+            @php
+                
+            @endphp
             @php $label = trim($opt); $price = $prices[$i] ?? 0; @endphp
             <div class="form-check form-check-inline">
+                <label class="form-check-label">
                 <input type="radio"
                        class="form-check-input custom-option"
                        name="radio_temp[{{ $field->id }}]"
@@ -51,7 +56,7 @@
                        data-price="{{ $price }}"
                        data-type="radio"
                        onchange="handleRadioChange('{{ $field->id }}', '{{ $label }}')">
-                <label class="form-check-label">{{ $label }} {{ $price > 0 ? '+₹'.$price : '' }}</label>
+                @if(isset($option_images[$label]))<img src="{{asset('storage/'.$option_images[$label])}}" width="20px">@endif {{ $label }} {{ $price > 0 ? '+₹'.$price : '' }}</label>
             </div>
         @endforeach
 
@@ -63,6 +68,7 @@
        @foreach($options as $i => $opt)
         @php $label = trim($opt); $price = $prices[$i] ?? 0; @endphp
         <div class="form-check form-check-inline">
+            <label class="form-check-label">
             <input type="checkbox"
                    class="form-check-input custom-option"
                    name="checkbox_temp[{{ $field->id }}][]"
@@ -71,7 +77,8 @@
                    data-price="{{ $price }}"
                    data-type="checkbox"
                    onchange="updateTotal()">
-            <label class="form-check-label">{{ $label }} {{ $price > 0 ? '+₹'.$price : '' }}</label>
+                   @if(isset($option_images[$label]))<img src="{{asset('storage/'.$option_images[$label])}}" width="20px">@endif
+            {{ $label }} {{ $price > 0 ? '+₹'.$price : '' }}</label>
         </div>
     @endforeach
 
