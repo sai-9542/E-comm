@@ -17,7 +17,8 @@ class CustomField extends Model
         'parent_id',
         'dependency_value',
         'required',
-        'option_prices'
+        'option_prices',
+        'option_images'
     ];
     
 

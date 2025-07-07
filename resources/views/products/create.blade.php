@@ -77,7 +77,12 @@
                 <div class="col-sm-12">
                     <div id="options-${index}" style="display:none;" class="mb-2 row">
                         <div class="col-md-12">
-                            <label>Options (comma-separated)</label>
+                            <label>Options (comma-separated)</label> 
+                            <!-- Fix ID for checkbox -->
+                            <input class="form-check-input" type="checkbox" onchange="toggleImages(${index}, this.checked)" name="fields[${index}][hasImages]" id="images-checkbox-${index}" value="1">
+
+                            <!-- Label should match updated ID -->
+                            <label class="form-check-label" for="images-checkbox-${index}">Add images</label>
                             <textarea name="fields[${index}][options]" id="type-${index}" placeholder="e.g., S,M,L" class="form-control mb-2"></textarea>
                         </div>
                         <div class="col-md-12">
@@ -93,6 +98,7 @@
                             <option value="yes">Yes</option>
                         </select>
                     </div>
+                    <div class="col-sm-12" id="images-container-${index}" style="display:none;"></div>
                     <div class="col-sm-12" id="nested-${index}" style="display:none;"></div>
                 </div>
             </div>
@@ -142,6 +148,34 @@
             });
         }
     }
+
+    function toggleImages(index, isChecked) {
+        const nestedDiv = document.getElementById(`images-container-${index}`);
+        if (!nestedDiv) return;
+
+        nestedDiv.style.display = isChecked ? 'block' : 'none';
+        nestedDiv.innerHTML = '';
+
+        if (isChecked) {
+            const optionsTextarea = document.getElementById(`type-${index}`);
+            if (!optionsTextarea) return;
+
+            const values = optionsTextarea.value.split(',').map(v => v.trim()).filter(Boolean);
+
+            values.forEach((val) => {
+                const sanitizedOption = val.replace(/[^a-z0-9]/gi, '_'); // Clean up value for safety
+                const block = `
+                    <div class="border p-2 mb-2">
+                        <strong>Option: ${val}</strong>
+                        <input type="file" name="field_images[${index}][${sanitizedOption}]" class="form-control mt-2">
+                    </div>
+                `;
+                nestedDiv.insertAdjacentHTML('beforeend', block);
+            });
+        }
+    }
+
+
 
     function updateFieldRegistry(index) {
         const input = document.querySelector(`input[name="fields[${index}][label]"]`);
