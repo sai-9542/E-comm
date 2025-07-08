@@ -100,6 +100,7 @@ public function store(Request $request)
             if (!empty($field['hasImages']) && !empty($field['options'])) {
                 $optionList = array_map('trim', explode(',', $field['options']));
                 foreach ($optionList as $optionValue) {
+                    $optionValue = preg_replace('/[^a-z0-9]/i', '_', $optionValue);
                     if (
                         $request->hasFile("field_images.{$tempIndex}.{$optionValue}") &&
                         $request->file("field_images.{$tempIndex}.{$optionValue}")->isValid()
@@ -369,7 +370,7 @@ public function update(Request $request, $id)
             if (!empty($imageInputs[$index])) {
                 foreach ($imageInputs[$index] as $optionKey => $file) {
                     if ($file && $file->isValid()) {
-                        $storedPath = $file->store('custom_field_options', 'public');
+                        $storedPath = $file->store('field_option_images', 'public');
                         $optionImages[$optionKey] = $storedPath;
                     }
                 }

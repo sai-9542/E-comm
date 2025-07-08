@@ -184,7 +184,7 @@ function toggleImages(index, isChecked, existingImages = {}) {
         const opts = document.getElementById(`type-${index}`).value.split(',').map(v => v.trim()).filter(Boolean);
         opts.forEach(opt => {
             const clean = opt.replace(/[^a-z0-9]/gi, '_');
-            const path = existingImages[opt] || '';
+            const path = existingImages[clean] || '';
             const preview = path ? `<img src="/storage/${path}" style="max-height:60px;" class="mt-2">` : '';
             container.insertAdjacentHTML('beforeend', `
                 <div class="border p-2 mb-2">
